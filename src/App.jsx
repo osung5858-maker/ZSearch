@@ -162,6 +162,20 @@ function App() {
     }
   };
 
+  const getGradient = (type) => {
+    switch (type) {
+      case 'HOSP': return 'from-red-400 to-rose-500';
+      case 'GOV': return 'from-blue-400 to-indigo-500';
+      case 'SCH': return 'from-green-400 to-emerald-500';
+      case 'PHARM': return 'from-yellow-400 to-orange-500';
+      case 'SAFETY': return 'from-orange-400 to-red-500';
+      case 'LIFE': return 'from-purple-400 to-violet-500';
+      case 'TRANS': return 'from-indigo-400 to-blue-500';
+      case 'LANDMARK': return 'from-teal-400 to-cyan-500';
+      default: return 'from-gray-400 to-slate-500';
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">
