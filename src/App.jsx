@@ -1,109 +1,215 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from './lib/supabaseClient';
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const quickTags = ['방송 장소', '예방접종', '주말 나들이', '맛집', '데이트 코스'];
+  const quickTags = ['관공서', '학교', '병원', '약국', '강남구'];
+
+  // Map user-friendly tags to DB types or query keywords
+  const tagMapping = {
+    '관공서': 'GOV',
+    '학교': 'SCH',
+    '병원': 'HOSP',
+    '약국': 'PHARM',
+    '강남구': '강남구' // For address search
+  };
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async (query = '') => {
+    setLoading(true);
+    setError(null);
+    try {
+      let queryBuilder = supabase
+        .from('public_services')
+        .select('*')
+        .limit(50);
+
+      if (query) {
+        // Simple search: check name or type or address
+        // Note: Supabase 'or' syntax: .or(`name.ilike.%${query}%,type.ilike.%${query}%,address.ilike.%${query}%`)
+        // Checking if query matches a type code first
+        const typeCode = tagMapping[query] || query.toUpperCase();
+
+        if (['GOV', 'SCH', 'HOSP', 'PHARM'].includes(typeCode)) {
+          queryBuilder = queryBuilder.eq('type', typeCode);
+        } else {
+          queryBuilder = queryBuilder.or(`name.ilike.%${query}%,address.ilike.%${query}%`);
+        }
+      }
+
+      const { data, error } = await queryBuilder;
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (err) {
+      console.error('Error fetching services:', err);
+      // Don't show technical errors to user, just empty list or friendly message
+      // setError(err.message); 
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchServices(searchTerm);
+  };
+
+  const handleTagClick = (tag) => {
+    setSearchTerm(tag);
+    fetchServices(tag);
+  };
+
+  const getTypeBadge = (type) => {
+    switch (type) {
+      case 'HOSP': return <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">병원</span>;
+      case 'GOV': return <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">관공서</span>;
+      case 'SCH': return <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">학교</span>;
+      case 'PHARM': return <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">약국</span>;
+      default: return <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">{type}</span>;
+    }
+  };
+
+  const getGradient = (type) => {
+    switch (type) {
+      case 'HOSP': return 'from-red-400 to-pink-500';
+      case 'GOV': return 'from-blue-400 to-cyan-500';
+      case 'SCH': return 'from-green-400 to-emerald-500';
+      case 'PHARM': return 'from-yellow-400 to-orange-500';
+      default: return 'from-gray-400 to-gray-500';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header/Nav (Optional, keeping it simple for now) */}
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+      {/* Header/Nav (Optional) */}
 
       {/* Main Search Area */}
-      <main className="flex flex-col items-center justify-center pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex flex-col items-center pt-16 pb-12 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <div className="mb-8">
-          <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tighter">
+        <div className="mb-8 animate-fade-in-down">
+          <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tighter cursor-pointer" onClick={() => { setSearchTerm(''); fetchServices(''); }}>
             ZSearch
           </h1>
         </div>
 
         {/* Search Bar */}
-        <div className="w-full max-w-2xl relative mb-8">
-          <div className="relative">
+        <form onSubmit={handleSearch} className="w-full max-w-2xl relative mb-6 z-10">
+          <div className="relative group">
             <input
               type="text"
-              className="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-full shadow-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 pl-14"
-              placeholder="검색어를 입력하세요..."
+              className="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-full shadow-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 pl-14 group-hover:shadow-xl"
+              placeholder="장소, 주소, 또는 종류를 검색해보세요..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {/* Search Icon */}
-            <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            {/* Mic Icon (Optional mock) */}
-            <div className="absolute right-5 top-1/2 transform -translate-y-1/2 text-blue-500 cursor-pointer hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            {/* Search Button (Optional) */}
+            <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-transform hover:scale-105">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
-            </div>
+            </button>
           </div>
-        </div>
+        </form>
 
         {/* Quick Tags */}
-        <div className="flex flex-wrap justify-center gap-3 mb-16">
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
           {quickTags.map((tag, index) => (
             <button
               key={index}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors duration-200"
+              onClick={() => handleTagClick(tag)}
+              className="px-4 py-2 bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-full text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
             >
               #{tag}
             </button>
           ))}
         </div>
 
-        {/* Result Cards Samples */}
-        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Broadcast Info Card */}
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300 border border-gray-100">
-            <div className="h-48 bg-gradient-to-r from-pink-500 to-orange-400 relative">
-              <div className="absolute bottom-4 left-4 text-white font-bold text-xl">생생정보통 맛집</div>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center mb-2">
-                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">방송 출연</span>
-                <span className="text-gray-500 text-sm">2023.10.25 방영</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">서울 마포구 연남동 파스타 맛집</h3>
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                방송에서 극찬한 바로 그 파스타! 신선한 재료와 쉐프만의 특별한 레시피로 만든...
-              </p>
-              <div className="flex items-center text-blue-600 hover:underline cursor-pointer font-medium">
-                자세히 보기 &rarr;
-              </div>
-            </div>
-          </div>
+        {/* Results Area */}
+        <div className="w-full max-w-6xl">
+          <h2 className="text-xl font-bold text-gray-800 mb-6 px-2 flex items-center">
+            {loading ? '검색 중...' : services.length > 0 ? `검색 결과 (${services.length})` : '검색 결과가 없습니다.'}
+            {searchTerm && !loading && <span className="ml-2 text-sm font-normal text-gray-500">'{searchTerm}'에 대한 결과</span>}
+          </h2>
 
-          {/* Hospital Info Card */}
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300 border border-gray-100">
-            <div className="h-48 bg-gradient-to-r from-cyan-500 to-blue-500 relative">
-              <div className="absolute bottom-4 left-4 text-white font-bold text-xl">24시 열린 병원</div>
+          {loading && (
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
-            <div className="p-6">
-              <div className="flex items-center mb-2">
-                <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">진료중</span>
-                <span className="text-gray-500 text-sm">0.8km</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">튼튼 소아청소년과 의원</h3>
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                야간 진료 가능, 주말/공휴일 진료. 영유아 검진 및 예방접종 전문 의료기관.
-              </p>
-              <div className="flex justify-between items-center">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold">
-                  예약하기
-                </button>
-                <div className="flex items-center text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  02-1234-5678
+          )}
+
+          {!loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {services.map((service) => (
+                <div key={service.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col h-full transform hover:-translate-y-1">
+
+                  {/* Card Header (Colored) */}
+                  <div className={`h-24 bg-gradient-to-r ${getGradient(service.type)} relative flex items-end p-4`}>
+                    <div className="text-white font-bold text-2xl shadow-sm drop-shadow-md truncate w-full">{service.name}</div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center mb-3">
+                        {getTypeBadge(service.type)}
+                      </div>
+
+                      <div className="flex items-start mb-2 text-gray-600 text-sm">
+                        <svg className="w-5 h-5 mr-2 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span className="leading-snug">{service.address}</span>
+                      </div>
+
+                      {service.phone && (
+                        <div className="flex items-center mb-4 text-gray-600 text-sm">
+                          <svg className="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                          {service.phone}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                      <button className="text-gray-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        상세정보
+                      </button>
+                      <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-bold flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        주변 편의시설
+                      </button>
+                    </div>
+
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          </div>
+          )}
+
+          {!loading && services.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">검색 결과가 없어요</h3>
+              <p className="text-gray-500 mb-6">다른 키워드로 검색하거나 태그를 눌러보세요.</p>
+              <button onClick={() => { setSearchTerm(''); fetchServices(''); }} className="text-blue-600 font-bold hover:underline">
+                전체 목록 보기
+              </button>
+              {/* Reminder for the user to run seed data if it's completely empty on first load (hard to detect strictly, but handled by task list) */}
+            </div>
+          )}
         </div>
       </main>
     </div>
