@@ -86,7 +86,7 @@ function App() {
 
       if (query) {
         const typeCode = tagMapping[query] || query.toUpperCase();
-        if (['GOV', 'SCH', 'HOSP', 'PHARM'].includes(typeCode)) {
+        if (['GOV', 'SCH', 'HOSP', 'PHARM', 'SAFETY', 'LIFE', 'TRANS', 'LANDMARK'].includes(typeCode)) {
           queryBuilder = queryBuilder.eq('type', typeCode);
         } else {
           queryBuilder = queryBuilder.or(`name.ilike.%${query}%,address.ilike.%${query}%`);
