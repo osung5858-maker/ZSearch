@@ -9,13 +9,17 @@ function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [sortByDistance, setSortByDistance] = useState(false);
 
-  const quickTags = ['관공서', '학교', '병원', '약국', '강남구'];
+  const quickTags = ['관공서', '학교', '병원', '약국', '지하철', '명소', '안전', '생활', '강남구'];
 
   const tagMapping = {
     '관공서': 'GOV',
     '학교': 'SCH',
     '병원': 'HOSP',
     '약국': 'PHARM',
+    '지하철': 'TRANS',
+    '명소': 'LANDMARK',
+    '안전': 'SAFETY',
+    '생활': 'LIFE',
     '강남구': '강남구'
   };
 
@@ -128,6 +132,10 @@ function App() {
       case 'GOV': return <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">관공서</span>;
       case 'SCH': return <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">학교</span>;
       case 'PHARM': return <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">약국</span>;
+      case 'SAFETY': return <span className="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">안전</span>;
+      case 'LIFE': return <span className="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">생활</span>;
+      case 'TRANS': return <span className="bg-indigo-100 text-indigo-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">교통</span>;
+      case 'LANDMARK': return <span className="bg-teal-100 text-teal-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">명소</span>;
       default: return <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide mr-2">{type}</span>;
     }
   };
@@ -138,6 +146,10 @@ function App() {
       case 'GOV': return 'from-blue-400 to-cyan-500';
       case 'SCH': return 'from-green-400 to-emerald-500';
       case 'PHARM': return 'from-yellow-400 to-orange-500';
+      case 'SAFETY': return 'from-orange-400 to-red-500';
+      case 'LIFE': return 'from-purple-400 to-indigo-500';
+      case 'TRANS': return 'from-indigo-400 to-blue-500';
+      case 'LANDMARK': return 'from-teal-400 to-green-500';
       default: return 'from-gray-400 to-gray-500';
     }
   };
