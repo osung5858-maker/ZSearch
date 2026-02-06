@@ -230,8 +230,12 @@ function App() {
           </h2>
 
           {loading && (
-            <div className="flex justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="flex flex-col justify-center items-center py-20 animate-fade-in">
+              <div className="relative w-16 h-16 mb-4">
+                <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-200 rounded-full opacity-50"></div>
+                <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+              </div>
+              <p className="text-gray-500 font-medium">서울의 보물 같은 장소를 찾고 있어요...</p>
             </div>
           )}
 
