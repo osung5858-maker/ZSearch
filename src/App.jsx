@@ -3,6 +3,9 @@ import { supabase } from './lib/supabaseClient';
 
 import VisionSearch from './components/VisionSearch';
 import FamilyProfile from './components/FamilyProfile';
+import BottomNav from './components/BottomNav';
+import SearchOverlay from './components/SearchOverlay';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +14,8 @@ function App() {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [sortByDistance, setSortByDistance] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
 
   const quickTags = ['관공서', '학교', '병원', '약국', '지하철', '명소', '안전', '생활', '강남구'];
 
@@ -159,58 +164,56 @@ function App() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">
+      <AnimatePresence>
+        {isSearchOpen && (
+          <SearchOverlay
+            isOpen={isSearchOpen}
+            onClose={() => setIsSearchOpen(false)}
+            onSearch={(term) => { setSearchTerm(term); fetchServices(term); }}
+            initialQuery={searchTerm}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Floating Action Button for Search */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsSearchOpen(true)}
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-gradient-to-tr from-blue-600 to-cyan-500 text-white p-5 rounded-full shadow-2xl shadow-blue-500/50"
+      >
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      </motion.button>
+
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
       <FamilyProfile onRecommend={handleRecommendation} />
 
-      <main className="flex flex-col items-center pt-16 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 animate-fade-in-down">
-          <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tighter cursor-pointer" onClick={() => { setSearchTerm(''); fetchServices(''); }}>
+      <main className="flex flex-col items-center pt-8 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 w-full flex justify-between items-center">
+          <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tighter" onClick={() => { setSearchTerm(''); fetchServices(''); }}>
             ZSearch
           </h1>
+          <button onClick={handleGeolocation} className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-gray-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          </button>
         </div>
 
-        <VisionSearch onSearch={handleVisionSearch} onLocationFound={(loc) => {
-          setUserLocation(loc);
-          setSortByDistance(true);
-        }} />
+        {activeTab === 'vision' && (
+          <VisionSearch onSearch={handleVisionSearch} onLocationFound={(loc) => {
+            setUserLocation(loc);
+            setSortByDistance(true);
+          }} />
+        )}
 
-        <form onSubmit={handleSearch} className="w-full max-w-2xl relative mb-6 z-10">
-          <div className="relative group flex gap-2">
-            <div className="relative flex-grow">
-              <input
-                type="text"
-                className="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-full shadow-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 pl-14 group-hover:shadow-xl"
-                placeholder="장소, 주소, 또는 종류를 검색해보세요..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGeolocation}
-              className="bg-white border-2 border-gray-200 text-gray-600 p-4 rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-200 shadow-md group-hover:shadow-lg flex-shrink-0"
-              title="내 주변 탐색"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
-          </div>
-        </form>
-
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        {/* Categories Carousel */}
+        <div className="w-full overflow-x-auto pb-4 mb-4 no-scrollbar flex gap-3 px-1">
           {quickTags.map((tag, index) => (
             <button
               key={index}
               onClick={() => handleTagClick(tag)}
-              className="px-4 py-2 bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-full text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              className="px-4 py-2 bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-full text-sm font-medium transition-all duration-200 shadow-sm flex-shrink-0"
             >
               #{tag}
             </button>
@@ -218,12 +221,12 @@ function App() {
         </div>
 
         <div className="w-full max-w-6xl">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 px-2 flex items-center justify-between">
-            <div className="flex items-center">
-              {loading ? '검색 중...' : services.length > 0 ? `검색 결과 (${services.length})` : '검색 결과가 없습니다.'}
-              {searchTerm && !loading && <span className="ml-2 text-sm font-normal text-gray-500">'{searchTerm}'에 대한 결과</span>}
-            </div>
-            {userLocation && <span className="text-sm text-blue-600 font-medium">📍 내 위치 기준 정렬됨</span>}
+          {/* Results Header */}
+          <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              {loading ? '검색 중...' : services.length > 0 ? `발견된 장소 ${services.length}곳` : '검색 결과 없음'}
+            </span>
+            {userLocation && <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full">📍 거리순</span>}
           </h2>
 
           {loading && (
@@ -298,15 +301,13 @@ function App() {
         </div>
       </main>
 
-      <footer className="w-full bg-white py-6 border-t border-gray-100 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
-            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            ZSearch의 의약품 및 장소 정보는 <strong>식품의약품안전처</strong> 및 공공데이터포털의 공식 데이터를 바탕으로 제공됩니다.
-          </p>
-        </div>
+      {/* Footer adjusted for Mobile */}
+      <footer className="w-full bg-white/50 backdrop-blur-sm py-4 border-t border-gray-100 text-center mb-16">
+        <p className="text-[10px] text-gray-400">
+          Data from <strong>식약처</strong> & <strong>공공데이터포털</strong>
+        </p>
       </footer>
-    </div>
+    </div >
   );
 }
 
