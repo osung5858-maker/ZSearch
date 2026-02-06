@@ -90,29 +90,28 @@ const VisionSearch = ({ onSearch, onLocationFound }) => {
                             <p className="text-xs text-gray-500">Detecting objects, reading text, and extracting GPS coordinates...</p>
                         </div>
                     ) : image ? (
-                    ): image && !analyzing ? (
-                    <div className="absolute top-4 left-4 right-4 bg-yellow-100 p-4 rounded-lg shadow-xl rotate-1 border border-yellow-200 animate-fade-in-up">
-                        <div className="text-gray-800 font-black mb-1 flex items-center justify-between">
-                            <span className="text-lg">✨ Analysis Result</span>
-                            <span className="text-xs bg-yellow-300 px-2 py-1 rounded">confidence: 98%</span>
+                        <div className="absolute top-4 left-4 right-4 bg-yellow-100 p-4 rounded-lg shadow-xl rotate-1 border border-yellow-200 animate-fade-in-up">
+                            <div className="text-gray-800 font-black mb-1 flex items-center justify-between">
+                                <span className="text-lg">✨ Analysis Result</span>
+                                <span className="text-xs bg-yellow-300 px-2 py-1 rounded">confidence: 98%</span>
+                            </div>
+                            <h4 className="text-xl font-bold text-gray-900 mb-2">Starbucks Gangnam</h4>
+                            <p className="text-sm text-gray-700 mb-3 font-medium">
+                                "Identified as a coffee shop. Popular for Americano and Cold Brew."
+                            </p>
+                            <button className="w-full py-2 bg-gray-900 text-white rounded-lg font-bold text-sm shadow-md">
+                                View Details & Menu
+                            </button>
                         </div>
-                        <h4 className="text-xl font-bold text-gray-900 mb-2">Starbucks Gangnam</h4>
-                        <p className="text-sm text-gray-700 mb-3 font-medium">
-                            "Identified as a coffee shop. Popular for Americano and Cold Brew."
-                        </p>
-                        <button className="w-full py-2 bg-gray-900 text-white rounded-lg font-bold text-sm shadow-md">
-                            View Details & Menu
-                        </button>
-                    </div>
                     ) : (
-                    <div className="text-gray-400 text-sm">
-                        <p>AI will analyze the photo to find:</p>
-                        <ul className="list-disc list-inside mt-2 space-y-1">
-                            <li>Store Name</li>
-                            <li>Menu Items</li>
-                            <li>Location (GPS)</li>
-                        </ul>
-                    </div>
+                        <div className="text-gray-400 text-sm">
+                            <p>AI will analyze the photo to find:</p>
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                                <li>Store Name</li>
+                                <li>Menu Items</li>
+                                <li>Location (GPS)</li>
+                            </ul>
+                        </div>
                     )}
                 </div>
             </div>
