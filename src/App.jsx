@@ -145,7 +145,6 @@ function App() {
 
   const handleTagClick = (tag) => {
     setSearchTerm(tag);
-    fetchServices(tag);
   };
 
   const getTypeBadge = (type) => {

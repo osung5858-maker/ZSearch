@@ -64,7 +64,20 @@ const VisionSearch = ({ onSearch, onLocationFound }) => {
                         <img src={image} alt="Preview" className="h-full w-full object-cover rounded-xl" />
                     ) : (
                         <>
-                            <span className="text-sm text-gray-500 font-medium">📸 Tap to Scan (Camera)</span>
+                            <span
+                                className="text-sm text-gray-500 font-medium"
+                                onClick={(e) => {
+                                    // Dev shortcut for testing
+                                    e.stopPropagation();
+                                    setAnalyzing(true);
+                                    setTimeout(() => {
+                                        setAnalyzing(false);
+                                        setImage('https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&q=80&w=200'); // Dummy text
+                                    }, 2000);
+                                }}
+                            >
+                                📸 Tap to Scan (Camera)
+                            </span>
                         </>
                     )}
                     <input
@@ -95,13 +108,16 @@ const VisionSearch = ({ onSearch, onLocationFound }) => {
                                 <span className="text-lg">✨ Analysis Result</span>
                                 <span className="text-xs bg-yellow-300 px-2 py-1 rounded">confidence: 98%</span>
                             </div>
-                            <h4 className="text-xl font-bold text-gray-900 mb-2">Starbucks Gangnam</h4>
-                            <p className="text-sm text-gray-700 mb-3 font-medium">
-                                "Identified as a coffee shop. Popular for Americano and Cold Brew."
-                            </p>
-                            <button className="w-full py-2 bg-gray-900 text-white rounded-lg font-bold text-sm shadow-md">
-                                View Details & Menu
-                            </button>
+                            <h4 className="text-xl font-bold text-gray-900 mb-1">Starbucks Gangnam</h4>
+                            <div className="text-sm text-gray-700 space-y-1 mb-3">
+                                <p className="flex items-center"><span className="font-bold w-16">영업시간:</span> 07:00 - 22:00</p>
+                                <p className="flex items-center"><span className="font-bold w-16">대표메뉴:</span> 아메리카노, 돌체라떼</p>
+                            </div>
+                            <div className="mt-2 pt-2 border-t border-yellow-200/50">
+                                <p className="text-[10px] text-gray-400 leading-tight">
+                                    💡 의약품 및 공공 정보는 <strong>식품의약품안전처</strong> 및 <strong>공공데이터포털</strong> 데이터를 바탕으로 합니다.
+                                </p>
+                            </div>
                         </div>
                     ) : (
                         <div className="text-gray-400 text-sm">
